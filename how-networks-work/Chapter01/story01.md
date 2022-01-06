@@ -53,5 +53,26 @@ http://www.hyungyu.co.kr/dir/file1.html
 ## 파일명을 생략한 경우
 
 위의 나온 URL과 다르게 `/`로 끝나는 URL은 파일명을 생략한 경우로,  
-서버측에서 설정한 파일을 액세스한다.  
-ex) `default.htm`, `index.html`
+서버측에서 설정한 파일을 액세스한다. (`default.htm`, `index.html`)  
+
+### <http://www.hyungyu.co.kr/dir/>  
+
+파일명만 생략된 경우, `/dir` 디렉토리 내에 기본 설정된 파일 액세스 (`/dir/default.htm`, `/dir/index.html`)
+
+### <http://www.hyungyu.co.kr/>
+
+파일명만 생략된 경우, 루트(`/`) 디렉토리 내에 기본 설정된 파일 액세스 (`/default.htm`, `/index.html`)
+
+### <http://www.hyungyu.co.kr>
+
+디렉토리명도 생략 된 경우, 루트(`/`) 디렉토리 내에 기본 설정된 파일 액세스 (`/default.htm`, `/index.html`)
+
+### <http://www.hyungyu.co.kr/whatisthis>
+
+규칙에 따르면 whatisthis 를 파일명으로 보는게 맞지만, 웹 서버에 해당 이름의 파일이 있으면 파일명으로,  
+해당 이름의 디렉토리가 있으면 디렉토리로 취급하는 것이 통례이다. (`/whatisthis`, `/whatisthis/index.html`, `/whatisthis/default.htm`)
+
+같은 이름을 가진 디렉토리와 파일은 존재 할 수 없기 때문에 둘 다 있는 경우는 없다.
+
+## HTTP의 기본 개념
+
