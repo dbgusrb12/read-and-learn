@@ -75,4 +75,3 @@ http://www.hyungyu.co.kr/dir/file1.html
 같은 이름을 가진 디렉토리와 파일은 존재 할 수 없기 때문에 둘 다 있는 경우는 없다.
 
 ## HTTP의 기본 개념
-
