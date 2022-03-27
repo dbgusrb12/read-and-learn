@@ -99,3 +99,164 @@
 
 ### 인터페이스 정리하기
 
+객체가 수신한 메시지가 객체의 인터페이스를 결정한다.  
+메시지가 객체를 선택했고, 선택된 객체는 메시지를 자신의 인터페이스로 받아들인다.
+
+객체가 어떤 메시지를 수신할 수 있다는 것은 그 객체의 인터페이스 안에 메시지에 해당하는 오퍼레이션이 존재한다는 것을 의미한다.
+
+손님 객체의 인터페이스 안에는 '커피를 주문하라' 라는 오퍼레이션이 포함돼야 한다.  
+메뉴판 객체의 인터페이스는 '메뉴 항목을 찾아라' 라는 오퍼레이션을 제공하며,  
+바리스타 객체의 인터페이스는 '커피를 제조하라' 라는 오퍼레이션을,  
+커피 객체는 '생성하라' 라는 오퍼레이션을 제공한다.
+
+실제로 소프트웨어의 구현은 동적인 객체가 아닌 정적인 타입을 이용해 이뤄진다.  
+따라서 객체들을 포괄하는 타입을 정의한 후 식별된 오퍼레이션을 타입의 인터페이스에 추가해야 한다.
+
+```java
+class Customer {
+    public void order(String menuName) {}
+}
+
+class MenuItem {
+}
+
+class Menu {
+    public MenuItem choose(String name) {}
+}
+
+class Barista {
+    public Coffee makeCoffee(MenuItem menuItem) {}
+}
+
+class Coffee {
+    public Coffee(MenuItem menuItem) {}
+}
+```
+
+### 구현하기
+
+클래스의 인터페이스를 식별했으므로 이제 오퍼레이션을 수행하는 방법을 메서드로 구현한다.  
+
+- `Customer`는 `Menu`에게 `menuName`에 해당하는 `MenuItem`을 찾아달라고 요청해야 한다.
+- `MenuItem`을 받아 이를 `Barista`에게 전달해서 원하는 커피를 제조하도록 요청해야 한다.
+
+```java
+class Customer {
+    public void order(String menuName, Menu menu, Barista barista) {
+        MenuItem menuItem = menu.choose(menuName);
+        Coffee coffee = barista.makeCoffee(menuItem);
+        ...
+    }
+}
+```
+
+- `Menu`는 `menuName`에 해당하는 `MenuItem`을 찾아야 하는 책임이 있다.
+
+```java
+class Menu {
+    private List<MenuItem> items;
+    
+    public Menu(List<MenuItem> items) {
+        this.items = items;
+    }
+    
+    public MenuItem choose(String name) {
+        for (MenuItem each : items) {
+            if (each.getName().equals(name)) {
+                return each;
+            }
+        }
+        return null;
+    }
+}
+```
+
+- `Barista`는 `MenuItem`을 이용해서 커피를 제조한다.
+
+```java
+class Barista {
+    public Coffee makeCoffee(MenuItem menuItem) {
+        Coffee coffee = new Coffee(menuItem);
+        return coffee;
+    }
+}
+```
+
+- `Coffee`는 커피 이름과 가격을 속성으로 가지고 생성자 안에서 `MenuItem`에 요청을 보내 커피 이름과 가격을 얻은 후 `Coffee` 속성에 저장한다.
+
+```java
+class Coffee {
+    private String name;
+    private int price;
+    
+    public Coffee(MenuItem menuItem) {
+        this.name = menuItem.getName();
+        this.price = menuItem.cost();
+    }
+}
+```
+
+- `MenuItem`은 `getName()` 과 `cost()` 메시지에 응답할 수 있도록 메서드를 구현해야 한다.
+
+```java
+public class MenuItem {
+    private String name;
+    private int price;
+    
+    public MenuItem(String name, int price) {
+        this.name = name;
+        this.price = price;
+    }
+    
+    public int cost() {
+        return price;
+    }
+    
+    public String getName() {
+        return name;
+    }
+}
+```
+
+## 코드와 세 가지 관점
+
+### 코드는 세 가지 관점을 모두 제공해야 한다.
+
+앞에서 작성한 코드는 개념 관점, 명세 관점, 구현 관점에서 각기 다른 사항들을 설명해준다.
+
+#### 개념 관점
+
+`Customer`, `Menu`, `MenuItem`, `Barista`, `Coffee` 클래스들을 자세히 살펴보면  
+커피 전문점 도메인을 구성하는 중요한 개념과 관계를 반영한다는 사실을 알 수 있다.  
+소프트웨어 클래스가 도메인 개념의 특성을 최대한 수용하면 변경을 관리하기 쉽고 유지보수성을 향상시킬 수 있다.  
+소프트웨어 클래스와 도메인 클래스 사이의 간격이 좁으면 좁을수록 기능을 변경하기 위해 뒤적거려야 하는 코드의 양도 점점 줄어든다.
+
+#### 명세 관점
+
+클래스의 `public` 메서드는 다른 클래스가 협력할 수 있는 공용 인터페이스를 드러낸다.  
+공용 인터페이스는 외부의 객체가 해당 객체에 접근할 수 있는 유일한 부분이다.  
+최대한 변화에 안정적인 인터페이스를 만들기 위해서는 인터페이스를 통해 구현과 관련된 세부 사항이 드러나지 않게 해야한다.  
+
+#### 구현 관점
+
+클래스의 메서드와 속성은 구현에 속하며 공용 인터페이스의 일부가 아니다.  
+따라서 메서드의 구현과 속성의 변경은 원칙적으로 외부의 객체에게 영향을 미쳐서는 안 된다.  
+이것은 메서드와 속성이 철저하게 클래스 내부로 캡슐화돼야 한다는 것을 의미한다.
+
+### 도메인 개념을 참조하는 이유
+
+도메인 개념 안에서 적절한 객체를 선택하는 것은 도메인에 대한 지식을 기반으로 코드의 구조와 의미를 쉽게 유추할 수 있게한다.
+
+여러 개의 클래스로 기능을 분할하고 클래스 안에서 인터페이스와 구현을 분리하는 이유는 변경이 발생했을 때 코드를 좀 더 수월하게 수정하길 원하기 때문이다.  
+소프트웨어 클래스가 도메인 개념을 따르면 변화에 쉽게 대응할 수 있다.
+
+### 인터페이스와 구현을 분리하라
+
+명세 관점과 구현 관점이 뒤섞여 머릿속을 함부로 어지럽히지 못하게 하라.  
+명세 관점은 클래스의 안정적인 측면을 드러내야 한다.  
+구현 관점은 클래스의 불안정한 측면을 드러내야 한다.  
+인터페이스가 구현 세부 사항을 노출하기 시작하면 아주 작은 변동에도 전체 협력이 요동치는 취약한 설계를 얻을 수밖에 없다.
+
+중요한 건 클래스를 봤을 때 클래스를 명세 관점과 구현 관점으로 나눠볼 수 있어야 한다는 것이다.  
+캡슐화를 위반해서 구현을 인터페이스 밖으로 노출해서도 안 되고, 인터페이스와 구현을 명확하게 분리하지 않고 흐릿하게 섞어놓아서도 안 된다.  
+결국 세 가지 관점 모두에서 클래스를 바라볼 수 있으려면 훌륭한 설계가 뒷받침 돼야 하는 것이다.
